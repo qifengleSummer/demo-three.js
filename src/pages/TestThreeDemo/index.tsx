@@ -1,10 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { OrbitControls } from 'three-stdlib'
 
 const TestThreeDemo = () => {
+	const cube = useRef<null | THREE.Mesh<
+		THREE.BoxGeometry,
+		THREE.MeshStandardMaterial,
+		THREE.Object3DEventMap
+	>>(null)
+
 	// 创建场景
 	const scene = new THREE.Scene()
-	scene.background = new THREE.Color(0xffffff)
+	scene.background = new THREE.Color(0x778899)
 
 	// 创建相机
 	const camera = new THREE.PerspectiveCamera(
@@ -23,6 +30,21 @@ const TestThreeDemo = () => {
 	renderer.setSize(window.innerWidth - 200, window.innerHeight - 200)
 	document.body.appendChild(renderer.domElement)
 
+	// 创建控制器
+	const controls = new OrbitControls(camera, renderer.domElement)
+	// 基础配置
+	controls.enableDamping = true // 启用阻尼（惯性效果）
+	controls.dampingFactor = 0.05 // 阻尼系数
+	controls.rotateSpeed = 1.0 // 旋转速度
+	controls.zoomSpeed = 1.0 // 缩放速度
+	controls.panSpeed = 1.0 // 平移速度
+	// 限制设置
+	controls.minDistance = 2 // 最小缩放距离
+	controls.maxDistance = 50 // 最大缩放距离
+	controls.maxPolarAngle = Math.PI // 最大垂直角度（允许看到底部）
+	// 目标点（相机围绕的点）
+	controls.target.set(0, 0, 0)
+
 	const createCube = () => {
 		const geometry: THREE.BoxGeometry = new THREE.BoxGeometry(1, 1.5, 2)
 
@@ -39,12 +61,14 @@ const TestThreeDemo = () => {
 		)
 
 		// 网格 - 明确的类型注解
-		const cube = new THREE.Mesh(geometry, material)
-		scene.add(cube)
+		cube.current = new THREE.Mesh(geometry, material)
+		scene.add(cube.current)
 	}
 
 	const animate = () => {
-		// requestAnimationFrame(animate)
+		requestAnimationFrame(animate)
+
+		controls.update()
 		renderer.render(scene, camera)
 	}
 
@@ -132,7 +156,6 @@ const TestThreeDemo = () => {
 	}
 
 	useEffect(() => {
-		console.log(111111)
 		drawCar()
 	}, [])
 
